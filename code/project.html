@@ -1,0 +1,1779 @@
+<doctype html>
+
+<html>
+
+<head>
+	<title> Data Visualization - InfoVis </title>
+	<link href="DV_InfoProject.css" rel="stylesheet">
+	<meta charset="utf-8"/>
+	<script src="https://d3js.org/d3.v3.min.js"></script>
+	<script src="thirdPartyCode/d3v4.js"></script>
+
+	<!-- Files and library needed to have tooltip over the forms we drew-->
+	<script type="text/javascript" src="http://code.jquery.com/jquery-1.6.2.min.js"></script> 
+	<script type="text/javascript" src="thirdPartyCode/jquery.tipsy.js"></script>
+	<link href="thirdPartyCode/tipsy.css" rel="stylesheet" type="text/css" />
+
+</head>
+
+
+<body>
+
+	<div class="arxi"><h1>Game of Thrones Visualization</h1>
+		<p>Choose a character from the tree layout below:</p>
+	</div>
+
+	<script>
+
+		//----------------------------------------global variables for Tree----------------------------------------
+		//selectedPerson is the variable which transfers information to all graphs about the data that will be presented
+		var selectedPerson
+
+		// for each graph we have to initialize some variables like the space that it will take
+		var marginTree = {top: 40, right: 20, bottom: 20, left: 20},
+		    widthTree = 700 - marginTree.right - marginTree.left,
+		    heightTree = 800 - marginTree.top - marginTree.bottom;
+
+		var i = 0,
+		    duration = 750,
+		    root;
+
+		//we define the layout of tree in the variable tree
+		var tree = d3.layout.tree()
+		    .size([heightTree, widthTree]);
+		//the links that will connect the nodes will be diagonal
+		var diagonal = d3.svg.diagonal()
+		    .projection(function(d) { return [d.y, d.x ]; });
+
+		var svgTree = d3.select("body").append("svg")
+		    .attr("width", widthTree + marginTree.right + marginTree.left)
+		    .attr("height", heightTree + marginTree.top + marginTree.bottom)
+		  	.append("g")
+		    .attr("transform", "translate(" + marginTree.left + "," + marginTree.top + ")");
+
+		var div = d3.select("body").append("div")   
+		    .attr("class", "tooltip")               
+		    .style("opacity", 0);
+
+		//----------------------------------------end of global variables for Tree----------------------------------------
+		
+		//----------------------------------------global variables for Relationship Graph----------------------------------------
+		var diameter = 870,
+			radius = diameter / 2,
+			innerRadius = radius - 120;
+		//we define the labels that the legend of the Relationship graph will contain
+		var labelsRG = ["kills", "allies", "family", "marriedEngaged"/*, "dead", "alive"*/];
+		var types = [];
+		//the types that we will take from the dataset
+		var types_full = ["killedBy", "allies", "siblings", "marriedEngaged"/*, "dead", "alive"*/];
+		//the colors that the links will have
+		var colors = ["red", "green", "blue", "purple"];
+
+		var line = d3v4.radialLine()
+		    .curve(d3v4.curveBundle.beta(0.85))
+		    .radius(function(d) { return d.y; })
+		    .angle(function(d) { return d.x / 180 * Math.PI; });
+
+		// the svg, which contains the Relationship graph is initialized here, we assign specific diamensions and we position it
+		var svgRG = d3v4.select("body").append("svg")
+		    .attr("width", diameter)
+		    .attr("height", diameter)
+		  	.append("g")
+		    .attr("transform", "translate(" + (radius+7) + "," + radius + ")");
+
+		var link = svgRG.append("g").selectAll(".link"),
+			node = svgRG.append("g").selectAll(".node");
+		
+	   	// definition of the legend for Relationship graph
+	    var legend = svgRG.selectAll(".legend")
+		    .data(labelsRG)
+		    .enter().append("g")
+		    .attr("id","menug")
+		    .attr("class", "legend")
+		    .attr("transform", function(d, i) { return "translate(0," + i * 20 + ")"; });
+		//----------------------------------------end of global variables for RG----------------------------------------
+		//----------------------------------------global variables for StremGraph----------------------------------------
+
+		var locationCharacter=[];
+		//this array is a map for the locations and the representing color
+		var colorStream = [
+                 [" rgb(153, 56, 96)","North of the Wall"],
+                ["rgb(250, 171, 84)",  "The Wall"],
+                ["rgb(0, 140, 193)",  "The North"],
+                ["#9ecae1",  "The Shivering Sea"],
+                [" rgb(109, 180, 155)",  "The Vale"],
+                [" rgb(0, 155, 119)",  "The Iron Islands"],
+                ["#2171b5",  "The Sunset Sea"],
+                ["rgb(203, 223, 125)",  "The Westerlands"],
+                ["rgb(168, 192, 70)",  "The Riverlands"],
+                ["rgb(54, 75, 140)",  "The Narrow Sea"],
+                ["rgb(215, 56, 40)",  "The Crownlands"],
+                ["rgb(152, 142, 140)",  "The Stormlands"],
+                ["rgb(112, 92, 147)",  "The Reach"],
+                ["rgb(219, 165, 16)",  "Dorne"],
+                [" rgb(149, 131, 0)",  "Pentos"],
+                ["rgb(139, 159, 209)",  "Braavos"],
+                ["#f7fcfd",  "The Summer Sea"],
+                ["rgb(185, 116, 108)",  "Volantis"],
+                ["rgb(201, 180, 116)",  "Valyria"],
+                ["rgb(218, 153, 190)",  "The Dothraki Sea"],
+                ["rgb(147, 193, 223)",  "Meereen"],
+                ["rgb(182, 184, 186)",  "Yunkai"],
+                ["rgb(245, 136, 112)",  "Astapor"],
+                ["rgb(139, 98, 127)",  "Vaes Dothrak"],
+                ["rgb(96, 119, 166)",  "The Red Waste"],
+                ["rgb(0, 100, 175)" ,"Qarth"]
+              ]
+
+		var marginSG = {
+		    top: 50,
+		    right: 50,
+		    bottom: 130,
+		    left: 50
+		},
+		widthSG = 960 - marginSG.left - marginSG.right,
+		   	heightSG = 620 - marginSG.top - marginSG.bottom;
+
+		var svgS = d3.select("body").append("svg")
+		    .attr("width", widthSG + marginSG.left + marginSG.right)
+		    .attr("height", heightSG + marginSG.top + marginSG.bottom)
+		    .append("g")
+		    .attr("transform", "translate(" + marginSG.left + "," + marginSG.top + ")");
+
+		//----------------------------------------end of global variables for StreamGraph----------------------------------------
+		//----------------------------------------global variables for ScatterPlot----------------------------------------
+		var dataset=[];
+		var objects=[];
+		var S_headers=["season1","season2","season3","season4","season5","season6","season7"];
+		var NumSeason;
+		var headers=["Arryn","Baratheon","Bolton","Dothraki","Frey","Greyjoy","Lannister","Martell","Mormont","Night Watch","Others","Stark","Targaryen","Tully","Tyrell","Wildling"];
+		var x,y,radius,Xaxis,Yaxis,max_Char,max_House,rects;
+		var representation=1;
+		var viewWidth = 850;
+		var viewHeight = 600;
+		var margin = {top: 30, right: 10, bottom: 130, left: 50};
+		var width = viewWidth - margin.left - margin.right;
+		var height = viewHeight - margin.top - margin.bottom;
+		var color=d3.scale.linear()
+    		    .domain([1,2,3,4,5,6,7])
+            	.range(["#cc0000","#ff1a8c","#ff6600","#e6b800","#b8b894","#0000ff","#00b300"]);
+        var color1=d3.scale.ordinal()
+    		    .domain(S_headers)
+            	.range(["#cc0000","#ff1a8c","#ff6600","#e6b800","#b8b894","#0000ff","#00b300"]);
+        var HouseColors=d3.scale.ordinal()
+        				.domain(headers)
+        				.range(["#80dfff","#ffff00","#002080","#ff6600","#993300","#4d4d4d","#ffd700","#ff4000","#009900","000000","#ffffff","#cccccc","#e60000","#8600b3","#00e600","#006600"]);
+
+
+		
+		//Method that gets called if the window is resized
+		d3.select(window).on("resize", resize);
+					
+		//Declare container in which to draw scatter plot
+		var canvas=d3.select("body")
+				 .append("svg")
+				 .attr("width",viewWidth)
+			 	 .attr("height",viewHeight)
+			 	 .append("g")
+			 	 .attr("transform", "translate(" + margin.left + "," + margin.top + ")");
+		//----------------------------------------end of global variables for ScatterPlot----------------------------------------
+		//------------------------------------SVG for the button,drop down menu and text needed for the scatterplot-------------
+		var canvasG=d3.select("body")
+				 .append("p")
+				 .attr("id","SelectionPlot")
+				 .text("Select what you want to display:");
+
+		var OptionsG = ["Characters Total Screen Time", "Characters Screen Time Per Season", "Houses Total Screen Time","Houses Screen Time Per Season"];
+
+		var selectSP = canvasG.append('select')
+  							  .attr('class','select')
+  							  .attr("id","Represent")
+    						  .on("change",selectRepresentation);
+
+		var optionsSP = selectSP.selectAll('option')
+								.data(OptionsG)
+								.enter()
+								 .append('option')
+							  	.text(function (d) { return d; });
+							  	 
+
+		canvasG.append("button")
+		  .attr("onClick","moveRectangles()")
+		  .attr("id","btn")
+		  .text("Next Season");
+
+		canvasG.append("p")
+			   .attr("id","SeasonText")
+			   .style("color","#cc0000")
+			   .text("SEASON 1");						  
+
+		initializeTree();
+		initializeRG();
+		selectRepresentation();
+		
+		//--------------------------------------------------js code for tree--------------------------------------------------
+
+
+		function initializeTree(){
+		  	d3.json("datasets/characterHouses.json", function(error, flare) {
+			    if (error) throw error;
+
+			    root = flare;
+			    root.x0 = height / 2;
+			    root.y0 = 0;
+
+			    function collapse(d) {
+			      if (d.children) {
+			        d._children = d.children;
+			        d._children.forEach(collapse);
+			        d.children = null;
+			      }
+			    }
+
+			    root.children.forEach(collapse);
+			    update(root);
+			});
+
+			  d3.select(self.frameElement).style("height", "800px");
+		}
+
+		function update(source) {
+
+			// Compute the new tree layout.
+			var nodes = tree.nodes(root).reverse(),
+			    links = tree.links(nodes);
+
+			// Normalize for fixed-depth.
+			nodes.forEach(function(d) { d.y = d.depth * 180; });
+
+			// Update the nodes…
+			var node = svgTree.selectAll("g.node")
+			  .data(nodes, function(d) { return d.id || (d.id = ++i); });
+
+			// Enter any new nodes at the parent's previous position.
+			var nodeEnter = node.enter().append("g")
+			  .attr("class", "node")
+			  .attr("transform", function(d) { return "translate(" + source.y0 + "," + source.x0 + ")"; })
+			  .on("mouseover",mouseover)
+			  .on("mouseout", mouseout)
+			  .on("click", click);
+
+			var images=nodeEnter.append('defs')
+			  .append('pattern')
+			  .attr('id', function(d,i){
+			    return 'image_' + d.name.replace(/\s/g, '');
+			  })
+			  .attr('height',1)
+			  .attr('width',1)
+			  .attr('x',0)
+			  .attr('y',0)
+			  .attr('patternContentUnits', 'objectBoundingBox')
+			  .append('image')
+			    .attr('xlink:href',function(d,i){
+			      return d.img;
+			      })
+			    .attr('height',1)
+			    .attr('width',1)
+			    .attr('x',0)
+			    .attr('y',0)
+			    .attr("preserveAspectRatio", "xMinYMin slice");
+
+			nodeEnter.append("circle")
+			  .attr("r", 1e-6)
+			  .style("fill", function(d) { return d._children ? "lightsteelblue" : "#fff"; });
+
+			// Transition nodes to their new position.
+			var nodeUpdate = node.transition()
+			  .duration(duration)
+			  .attr("transform", function(d) { return "translate(" + d.y + "," + d.x + ")"; });
+
+			nodeUpdate.select("circle")
+			  .attr("r", 15)
+			  .style("fill", function(d,i){
+			    return 'url(#image_' + d.name.replace(/\s/g, '')+')';
+			  });
+
+			nodeUpdate.select("text")
+			  .style("fill-opacity", 1);
+
+			// Transition exiting nodes to the parent's new position.
+			var nodeExit = node.exit().transition()
+			  .duration(duration)
+			  .attr("transform", function(d) { return "translate(" + source.y + "," + source.x + ")"; })
+			  .remove();
+
+			nodeExit.select("circle")
+			  .attr("r", 1e-6);
+
+			nodeExit.select("text")
+			  .style("fill-opacity", 1e-6);
+
+			// Update the links…
+			var link = svgTree.selectAll("path.link")
+			  .data(links, function(d) { return d.target.id; });
+
+			// Enter any new links at the parent's previous position.
+			link.enter().insert("path", "g")
+			  .attr("class", "link")
+			  .attr("d", function(d) {
+			    var o = {x: source.x0, y: source.y0};
+			    return diagonal({source: o, target: o});
+			  });
+
+
+			// Transition links to their new position.
+			link.transition()
+			  .duration(duration)
+			  .attr("d", diagonal);
+
+
+			// Transition exiting nodes to the parent's new position.
+			link.exit().transition()
+			  .duration(duration)
+			  .attr("d", function(d) {
+			    var o = {x: source.x0, y: source.y};
+			    return diagonal({source: o, target: o});
+			  })
+			  .remove();
+
+			// Stash the old positions for transition.
+			nodes.forEach(function(d) {
+			d.x0 = d.x;
+			d.y0 = d.y;
+			});
+
+		}
+
+		//when clicking a node this function is called
+		function click(d) {
+		if (d.children) {
+			d._children = d.children;
+			d.children = null;
+		} else {
+			d.children = d._children;
+			d._children = null;
+			// if the node doesn't have children, which means it is a character we have to update the relationship graph but also create the streamgraph and adjust the bar chart, all these actions are implemented in the updateAllonClick function
+		 	if (!d.children){
+        		selectedPerson = d.name;
+        		updateAllonClick(d.name);
+	        } else {
+	        	// in the case where the node has children, it means that the user has clicked a house, so the respective bar chart should be drawn
+				getSpecificHouse(d.name);
+	        }
+		}
+			update(d);
+		}
+
+		// this function is used when hovering on a node of the tree
+		function mouseover() {
+
+			var current_node=d3.select(this);
+			//if the hovered node is just a house the name of the house appears
+			if(this.__data__.depth==1){
+				var info = current_node.append('text')
+				.classed('info', true)
+				.attr('x', 20)
+				.attr('y', 10)
+				.text(function(d) { return d.name;});
+			}
+			var current_character=this.__data__.name;
+			var actor_data=null;
+			var a=null;
+			var b=null;
+			var c=null;
+			//if the node has depth 2, it means that it is a character, so we search in another dataset to find information about this person and we represent it using the function myinfo
+			if(this.__data__.depth==2){
+				var actor_data=null;
+				var a=d3.event.pageX;
+				var b=d3.event.pageY;
+				var c=this.__data__.episodes;
+				d3.json("datasets/characterRelations.json", function(data) {
+				    data.characters.map((i)=>{ i.characterName==current_character ? actor_data = i : null})
+				    myinfo(actor_data,a,b,c);
+				  });
+			}
+		}
+
+		//this function visualized properly the data we want to present when hovering on a node
+		function myinfo(actordata,x,y,z){
+
+			var house="";
+			if (actordata){
+				actordata.houseName?actordata.houseName.forEach(function(i){house != ""?  house=house+", "+i : house =i;}):house=null;
+				div.transition()        
+					.duration(200)   
+					.attr("x",20)  
+					.style("opacity", .9);      
+				//here we return html from the javascript, in order to create tags
+				div.html(
+    					"<h3>"+actordata.characterName+"<hr></h3><img src="+actordata.characterImageFull+ ">"+"<hr>"+ 
+    					(actordata.killedBy ? "<h4>Condition: <span style='color: red;'> Dead</span></h4><hr>": "<h4>Condition: <span style='color: green;'> Alive</span></h4>")+(actordata.killedBy ?"<h4>Killed By: "+actordata.killedBy
+      					+"</h4>":" ")+(house!=null? "<hr><h4>House: "+house+"</h4>":"")+
+      					"<hr><h4>Number of Episodes:"+z+"</h4>"+"<hr><h4>Actor: "+actordata.actorName+"</h4>"
+
+     					)
+    				.style("left", (x+50 ) + "px" )
+    				.style("top", (y)+ "px");
+    
+		    }
+		}	
+
+		function mouseout() {
+
+			d3.select(this).select('text.info').remove()
+			div.transition()
+			            .duration(300)
+			            .style("opacity", 1e-6);
+		}
+
+		// --------------------------------------------------end of code for tree--------------------------------------------------
+		//-------------------------------------------js code for relationship graph (RG)-------------------------------------------
+
+		//this function contains the first steps for the creation of the relationship graph
+		function initializeRG(){
+			
+			//we create a cluster with the specified innerRadius from the global variables
+			//360 are the degrees of the circle (we want a full one)
+			var cluster = d3v4.cluster()
+			    .size([360, innerRadius]);
+
+			// we append the circles with the color, the text with the label and the checkboxes in the legend
+			legend.append("circle")
+           		.attr("cx", 350 - 30)
+           		.attr("cy", -420)
+        		.attr("r", 6)
+			    .attr("width", 15)
+			    .attr("height", 15)
+			    .style("fill", function(d, i) { return colors[i] });
+
+			legend.append("text")
+			    .attr("x", 350 - 44)
+			    .attr("y", -430+9)
+			    .attr("dy", ".35em")
+			    .attr("class", "legentText")
+			    .style("text-anchor", "end")
+			    .text(function(d) { return d });
+
+	        legend.append("foreignObject")
+		        .attr("x", 350 -30)
+				.attr("y", -440)
+		        .attr("width", 100)
+		        .attr("height", 100)
+		        .append("xhtml:body")
+		        .html(function(d,i) { return "<form><input type=checkbox id=check"+i+" /></form>"; })
+		        //for every checkbox clicked the relationship graph should be updated, for this purpose we call the function updateRG with the appropriate arguments
+		        .on("click", function(d, i){
+		            if (svgRG.select("#check"+i).node().checked == true){
+		            	types.push(types_full[i])
+		            	updateRG(types, cluster);
+		            } else {
+		            	var index = types.indexOf(types_full[i]);
+		            	if (index > -1) {
+						    types.splice(index, 1);
+						}
+		            	updateRG(types, cluster);
+		            }
+		        });
+
+	        drawRGraph(types_full, cluster);
+		}
+
+		// when we hoven on a node the connections as long as the nodes connected with this node should be more visible.
+		// for this reason we change the class that the nodes and links have until now with respect to if the node/ link is a target or a source
+		function mouseoveredRG(d) {
+			
+		  	node
+		      .each(function(n) { n.target = n.source = false; });
+
+		  	link
+		      .classed("linkRG--target", function(l) { if (l.target === d) return l.source.source = true; })
+		      .classed("linkRG--source", function(l) { if (l.source === d) return l.target.target = true; })
+		    .filter(function(l) { return l.target === d || l.source === d; })
+		      .raise();
+
+		  	node
+		      .classed("nodeRG--target", function(n) { return n.target; })
+		      .classed("nodeRG--source", function(n) { return n.source; });
+		}
+
+		function mouseoutedRG(d) {
+
+		  link
+		      .classed("linkRG--target", false)
+		      .classed("linkRG--source", false);
+
+		  node
+		      .classed("nodeRG--target", false)
+		      .classed("nodeRG--source", false);
+		}
+
+		function packageHierarchy(classes) {
+		  var map = {};
+
+		  //here is the pre-processing we need in order to append in the node the necessary information about each character
+		  function find(characterName, data) {
+		    var node = map[characterName], i;
+		    if (!node) {
+		      node = map[characterName] = data || {characterName: characterName, children: []};
+		      if (characterName.length) {
+		        node.parent = find(characterName.substring(0, i = characterName.lastIndexOf(".")));
+		        node.parent.children.push(node);
+		        node.key = characterName.substring(i + 1);
+		      }
+		    }
+		    return node;
+		  }
+
+		  classes.forEach(function(d) {
+		    find(d.characterName, d);
+		  });
+
+		  return d3v4.hierarchy(map[""]);
+		}
+
+		function packageImports(nodes, types) {
+
+		//every kind of relations we have in the graph is specified in more than one in the dataset,
+		//we have specified the subrelationship in each array, in order to search for all of them in the dataset
+		var family = ["siblings", "parentOf"];
+		var allies = ["allies", "servedBy", "guardianOf"];
+		  var imports = [],
+		  	map = {};
+
+		  // Compute a map from name to node.
+		  nodes.forEach(function(d) {
+		    map[d.data.characterName] = d;
+		  });
+		  // For each import, construct a link from the source to target node.
+		  nodes.forEach(function(d) {
+		  	types.forEach(function(t) {
+		  		if (t == "siblings") {
+		  			family.forEach(function(f) {
+		  				imports = createLinks(map, imports, d, f);
+		  			});
+		  		} else if (t == "allies"){
+		  			allies.forEach(function(f) {
+		  				imports = createLinks(map, imports, d, f);
+		  			});
+		  		} else if ( t == "killedBy"){
+		  			imports = createLinks(map, imports, d, "killedBy");
+		  		} else if ( t == "marriedEngaged" ){
+		  			imports = createLinks(map, imports, d, "marriedEngaged");
+		  		}
+			});
+		  });
+		  return imports;
+		}
+
+		//using this function we create the links between the nodes, if the character has been killed we add an attribute killed in the array of objects we store the required information. Also we need the type of the relationship the nodes have, and we add a key type.
+		function createLinks (map, imports, d, f) {
+			if (d.data.killedBy){
+				map[d.data.characterName].dead = true;
+			} else {
+				map[d.data.characterName].dead = false;
+			}
+			if (d.data[f]) d.data[f].forEach(function(i) {
+		    	if (map[i]){
+		    		map[d.data.characterName].type = f;
+		      		imports.push(map[d.data.characterName].path(map[i]));
+		      	}
+			});
+			return imports;
+		}
+
+		// to draw the graph we use this function which uses the constructed data
+		function drawRGraph(types, cluster){
+			d3v4.json("datasets/characterRelations.json", function (data) {
+
+				var root = packageHierarchy(data.characters)
+	      			.sum(function(d) { return d.size; });
+	      		
+				cluster(root);
+
+				link = link
+				    .data(packageImports(root.leaves(), types))
+					.enter().append("path")
+				      .each(function(d) { d.source = d[0], d.target = d[d.length - 1]; })
+				      .attr("class", "linkRG")
+				      .style("stroke", function(d){
+				      	if (d[0].type == "killedBy"){
+				      		return "red"
+				      	} else if (d[0].type == "siblings" || d[0].type == "parentOf"){
+				      		return "blue"
+				      	} else if (d[0].type == "allies" || d[0].type == "servedBy"  || d[0].type == "guardianOf") {
+				      		return "green"
+				      	} else if (d[0].type == "marriedEngaged"){
+				      		return "purple"
+				      	} 
+	                  })
+				      .attr("d", line);
+
+				    node = node
+				    	.data(root.leaves())
+				    	.enter()
+				    	.append("text")
+				  		.attr("class", "nodeRG")
+				      	.attr("transform", function(d) { 
+				      		if (d.dead == false) return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 7.5) + ",0)" + (d.x < 180 ? "" : "rotate(180)"); 
+				      		else return "rotate(" + (d.x - 90) + ")translate(" + (d.y + 1) + ",0)" + (d.x < 180 ? "" : "rotate(180)");
+				      		}) // d.y + 9  if we add image
+				      	.attr("text-anchor", function(d) { return d.x < 180 ? "start" : "end"; })
+				      	.attr("dy", ".31em")
+				      	.text(function(d) { 
+				      		if (d.dead == true) {
+				      			if (d.x < 180){
+				      				return "✞" + d.data.key;
+				      			} else {
+				      				return d.data.key +  "✞";
+				      			}
+				      		} else {
+				      			return  d.data.key;
+				      		}
+				      	})
+				      	.attr("class", "nodeRG")
+				      	.on("mouseover", mouseoveredRG)
+					  	.on("mouseout", mouseoutedRG);
+			      	});
+			}
+
+		function updateAllonClick(selectedPerson){
+			//this part of the code conserns the changes that happen to the Relationship Graph when a character is chosen
+			node
+		      .each(function(n) { n.target = n.source = false; });
+
+		  	link
+		      .classed("linkRG--target", function(l) {
+		      	if (l.length > 1 && (l[0].data.characterName == selectedPerson || l[2].data.characterName == selectedPerson)) return l.source.source = true; })
+		      .classed("linkRG--source", function(l) { if (l.length > 1 && (l[0].data.characterName == selectedPerson || l[2].data.characterName == selectedPerson)) return l.target.target = true; })
+		      .raise();
+
+		  	node
+		      .classed("nodeRG--target", function(n) { return n.target; })
+		      .classed("nodeRG--source", function(n) { return n.source; });
+
+		    // we draw the streamgraph for the selectedPerson
+		    drawStreamgraph(selectedPerson);
+		    //we draw the bar chart for the selectedPerson
+			getSpecificCharacter(selectedPerson);
+
+		}
+
+		function updateRG(types, cluster){
+			node.remove();
+			link.remove();
+
+			link = svgRG.append("g").selectAll(".link");
+		    node = svgRG.append("g").selectAll(".node");
+
+			drawRGraph(types, cluster);
+		}
+
+		//------------------------------------------------------code for StreamGraph --------------------------------------------------
+		//function which transforms the time form the dataset to seconds
+		function sec(timeString){
+		    var sec = 0;
+		    if (timeString.length == 0) return sec;
+		    var splitArray = timeString.split(":");
+		    sec = 3600*parseFloat(splitArray[0])+60*parseFloat(splitArray[1])+parseFloat(splitArray[2]);
+		    return sec;
+		  }
+
+		// for the streamgraph we needed a lot of preprocessing, so we created this function to create a more handy structure
+		function dataNeededForStream(dat2, selectedPerson){
+		    var epPerSeason=[10,10,10,10,10,10,7];
+		    var locationPerEpisode=[];
+		    var timePerEpisode=[];
+		    var a=[];
+
+		    //we actually create a new dataset with the information we care about
+		    //get the max y of the domain, so that itll never go beyond screen
+		    for (var i = 0; i < dat2.episodes.length; i++){
+		    // look for the entry with a matching `code` value
+
+		        dat2.episodes[i].scenes.forEach(function(sc){
+		            sc.characters.forEach(ch=>{
+		                var time=sec(sc.sceneEnd)-sec(sc.sceneStart);
+		                var pos=a.findIndex(el=>{ return el.name==ch.name && el.Episode==dat2.episodes[i].episodeNum && el.location==sc.location && el.Season==dat2.episodes[i].seasonNum});
+		                if(pos!=-1){
+		                    a[pos].time=a[pos].time + time;
+		                } else{
+		                    a.push({"name":ch.name,"time":parseFloat(time),"location":sc.location,"Season":dat2.episodes[i].seasonNum,"Episode":dat2.episodes[i].episodeNum});
+		                }
+		            })
+		        })
+		    }
+
+		    a.map(person => {
+		        if(person.name == selectedPerson){
+		            var loc=locationCharacter.findIndex(l=>{ return l==person.location});
+		            if(loc== -1){
+		                locationCharacter.push(person.location);
+		            }
+		            timePerEpisode.push(person.time);
+		            locationPerEpisode.push(person.location);
+		        }
+		    })
+		    var allData = []
+
+		    var allDataPerEpisode = []
+		    for (var season = 0; season <7; season++) {
+		      for (var epis = 0; epis < epPerSeason[season]; epis++) {
+		        var allDataPerEpisode = a.filter(p => {if(p.Season == season+1 && p.Episode == epis +1 && p.name == selectedPerson) return p})
+		        if (allDataPerEpisode.length == 0){
+		            allDataPerEpisode = [{"name": selectedPerson, "Season": season+1, "Episode": epis+1,"time": 0}]
+		        }
+		        allData.push(allDataPerEpisode)
+		      }
+		    }
+		    return allData
+		}
+
+		//we create the streamgrpah only when a character is chosen
+		function drawStreamgraph(selectedPerson){
+			svgS.selectAll("*").remove();
+
+			//here we define the range and the domain of the axis
+            var xStream = d3.scale.linear()
+                .range([0, widthSG])
+                .domain([1, 67]); //10 is the number of episoddes
+
+            var yStream = d3.scale.linear()
+                .range([heightSG, 0])
+                .domain([0, 60]); //max y is the sum we calculated earlier
+
+            //the streamgraph consinsts of stacks, here the layout is defined
+			var stack = d3.layout.stack()
+			    .offset("wiggle") //<-- creates a streamgraph
+
+			var legendStream = svgS.append("g")
+				.attr("class", "legend")
+				.attr("height", 100)
+				.attr("width", 100)
+				.attr('transform', 'translate(-20,50)') ;
+
+			var stream = svgS.selectAll(".layer");
+
+		    d3.json("datasets/screentime.json", function (dat2) {
+
+	            locationCharacter = []
+	            legendStream.remove();
+	            stream.remove();
+	            var allData = dataNeededForStream(dat2, selectedPerson);
+	            legendStream = svgS.append("g")
+	            	.attr("class", "legend")
+					.attr("height", 100)
+					.attr("width", 100)
+					.attr('transform', 'translate(-20,50)') ;
+		        var c = [];
+		        locationCharacter.map((loc) => {
+		            var temp = allData.map(function (d, i) {
+		                var kati = {}
+		                var y0 = null;
+		                for (var z=0; z< d.length; z++){
+		                    if (z<d.length-1){
+		                        if (d[z].time <= d[z+1].time){
+		                            y0 = d[z+1].time/60
+		                        }else{
+		                            y0 = 0
+		                        }
+		                    }else {
+		                        y0 = null
+		                    }
+		                    if (d[z].location == loc){
+		                        kati = {
+		                            x: (d[z].Season-1)*10+d[z].Episode,
+		                            y: d[z].time/60,
+		                            y0: y0
+		                        };
+		                    }
+		                    if (!kati.x){
+		                        kati = {
+		                            x: (d[z].Season-1)*10+d[z].Episode,
+		                            y: 0,
+		                            y0: 0
+		                         }
+		                     }
+		                }
+		                return kati
+		            });
+		            c.push([temp])
+		        })
+
+		        //using this compand we take the array c and the layers for the streamgraph are created
+		        var layers = stack(c);
+		        // Add scales to axis
+		        var x_axis = d3.svg.axis()
+		              .ticks(67)
+		              .scale(xStream);
+
+		        var y_axis = d3.svg.axis()
+		                .orient("right")
+		                .scale(yStream);
+
+		        //Append group and insert axis
+		        svgS.append("g")
+		          .attr("class", " axis")
+		          .attr("transform", "translate(-12," + heightSG + ")")
+		          .call(x_axis)
+		          .append("text")
+      				.attr("x", 456 )
+        			.attr("y", 44 )
+        			.style("text-anchor", "middle")
+        			.text("Episodes");
+		      
+		        //Append group and insert axis
+		         svgS.append("g")
+		           .attr("class", "axis")
+		           .attr("transform", "translate(" + (widthSG-12) + ",0)")
+		           .call(y_axis)
+		           .append("text")
+		           .attr("x", 185 )
+        			.attr("y", -50 )
+        			.style("text-anchor", "middle")
+        			.attr("transform","rotate(90)")
+        			.text("Time Per Episode (Min)");
+
+		        //vis type
+		        var area = d3.svg.area()
+		            .interpolate('cardinal')
+		            .x(function (d, i) {
+		            return xStream(i);
+		        })
+		            .y0(function (d) {
+		            return yStream(d.y0);
+		        })
+		            .y1(function (d) {
+		            return yStream(d.y0 + d.y);
+		        });
+
+		        stream = stream.data(layers)
+		            .enter().append("path")
+		            .attr("class", "layer")
+		            .attr("d", function (d) {
+		            return area(d[0]);
+		        })	// the color of each layer should be specified by the mapping of color-location
+		            .style("fill", function (d, i) {
+		            	var colorgraph=0;
+		            	colorStream.map(col=>{
+				          if(col[1]==locationCharacter[i])
+				            colorgraph=col[0];
+				        })
+				    return colorgraph;
+		        });
+		        svgS.selectAll(".layer")
+				    .attr("opacity",1)
+				    .on("mouseover", function(d, i) {
+				        svgS.selectAll(".layer").transition()
+				      		.duration(250)
+				      		.attr("opacity", function(d, j) {
+				        		return j != i ? 0.1 : 1;
+				    		})
+				      	})
+				    .on("mouseout", function(d, i) {
+				    	svgS.selectAll(".layer")
+				        	.transition()
+					        .duration(250)
+					        .attr("opacity", "1")});
+
+				// construct the legend only for the locations contained in the streamgraph, because otherwise it would need too much space
+				legendStream.selectAll('circle')
+					.data(locationCharacter)
+					.enter()
+					.append("circle")
+					.attr("cx", width - 30)
+					.attr("cy", function(d, i){ return (i *  20)+3;})
+					.attr("r", 6)
+					.attr("width", 10)
+					.attr("height", 10)
+					.style("fill", function(d) { 
+				    var colorLegend=0;
+				    colorStream.map(col=>{
+						if(col[1]==d){
+							colorLegend=col[0];
+						}
+				    })
+				    return colorLegend;
+				  })
+				  
+				legendStream.selectAll('text')
+				    .data(locationCharacter)
+				    .enter()
+				    .append("text")
+					.attr("x", width - 52)
+				    .attr("y", function(d, i){ return i *  20 + 9;})
+				    .style("text-anchor", "end")
+					.text(function(d) {
+					    var text="";
+					    colorStream.map(city=>{
+					      if(city[1]==d){
+					        text=city[1]
+					      }
+					    })
+					    return text;
+					  });
+		    })
+		}
+		// ------------------------------------------------ end of code for Stream Graph -------------------------------------------
+		// ------------------------------------------------ code for Scatter Plot -------------------------------------------
+		//Method that shows the screen time of each character per season 
+			function DrawCharPerSeason(){
+				//Remove all elements from existing canvas and from dataset array
+				canvas.selectAll("*").remove();
+				dataset=[];
+				NumSeason=1;
+
+				//Make the button visible again
+				document.getElementById("btn").style.visibility="visible";
+				document.getElementById("SeasonText").textContent="SEASON 1";
+				document.getElementById("SeasonText").style.color=color(1).toString();
+
+
+				// Create array with characters from file
+				d3.csv("datasets/ScreenTimePerSeason.csv", function(csv){
+						csv.map(function(d){ 
+						dataset.push(d.Character_Name);
+						objects.push(d);
+					}) });
+
+				//Declare scale for attributes
+				y=d3.scale.linear()
+						  .domain([0,100])
+						  .range([height, 0]);
+
+				d3.csv("datasets/ScreenTimePerSeason.csv", function (data){
+					x=d3.scale.ordinal()
+				  			  .domain(dataset)
+				              .rangePoints([2,width-4]);
+					
+					//Declare the axes x,y
+					Xaxis=d3.svg.axis()
+							.orient("bottom")
+							.tickValues(dataset)
+							.scale(x);
+
+					Yaxis= d3.svg.axis()
+								 .orient("left")
+				   		 		 .scale(y);
+		
+					canvas.selectAll("rect")
+				  		  .data(data)
+				  		  .enter()
+				  			.append("rect")
+				  			.attr("x", function(d){ return x(d.Character_Name);})
+				  			.attr("y",function(d){ return y(d.season1)})
+				  			.attr("width",7)
+				  			.attr("height", function(d){return height-y(d.season1);})
+				  			.attr("fill", function(d){console.log(d.house); return HouseColors(d.house);})
+				  			.on("click",function(){
+				  				var d=this.__data__;
+				  				var name=d.Character_Name;
+				  				updateAllonClick(name);
+				  				getSpecificCharacter(name);
+				  	});	 
+
+					$('svg rect').tipsy({ 
+        				gravity: 'w', 
+        				html: true, 
+        				title: function() {
+          					var d = this.__data__;
+          					var rad =this.height.animVal.value;
+          					var aktina=(100-y.invert(rad)).toFixed(2);
+          					return "Character: " + d.Character_Name + ", Screen Time: "+ aktina; 
+        			}});  		
+
+					canvas.append("g")
+						  .attr("class", "y axis")
+					  	  .call(Yaxis)
+				  	  	  .append("text")
+				  	  	  .attr("text-anchor","end")
+				  	      .attr("font-family","times new roman")
+			  	  	      .attr("y",6)
+			  	  	      .attr("dx","-.9em")
+				  	      .attr("dy",".95em")
+  	      				  .attr("font-size","13px")
+				  	      .attr("transform","rotate(-90)")
+				  	      .text("Screen Time (min)");
+		
+					canvas.append("g")
+				  			.attr("class","x axis")
+			  	  			.attr("transform","translate(0,"+ height + ")")
+			  	  			.call(Xaxis)
+			      			.selectAll("text")
+			  	  			.style("text-anchor","end")
+			  	  			.attr("dx","-.8em")
+			  	  			.attr("dy",".15em")
+			  	  			.attr("font-family","times new roman")
+			  	  			.attr("font-size","11px")
+			  	  			.attr("transform", function(d){ return "rotate(-80)"});
+
+
+			  	  	//Adding legend to see how colors match
+			  	  	var legendSP = canvas.selectAll(".legend")
+        				.data(headers.slice().reverse())
+            			.enter().append("g")
+            			.attr("class", "legendSP")
+            			.attr("transform", function(d, i) { return "translate(-2," + i * 20 + ")"; });
+       
+       		 		legendSP.append("circle")
+           		 		.attr("cx", width-5 )
+            			.attr("r", 5)
+            			.style("fill", HouseColors);
+    
+   		   		  legendSP.append("text")
+            	  		.attr("x", width - 22)
+              			.attr("y", 2)
+              			.style("text-anchor", "end")
+              			.text(function(d) { return d;});
+			});
+		}
+			
+			//Method that shows the total screen time of each character 
+			function DrawCharTotal(){
+			//Clear canvas of everything
+			canvas.selectAll("*").remove();
+			dataset=[];
+
+			document.getElementById("btn").style.visibility="hidden";
+			document.getElementById("SeasonText").textContent="Overview of all seasons and all characters";
+			document.getElementById("SeasonText").style.color="#000000";
+
+			
+			d3.csv("datasets/ScreenTimePerSeason.csv", function(csv){
+				csv.map(function(d){
+					dataset.push(d.Character_Name);
+				})
+			});
+
+			d3.csv("datasets/ScreenTimePerSeason.csv", function (data){
+			//Declare scale for attributes
+	    	var y=d3.scale.linear()
+				.range([height, 0]);
+			
+			var x=d3.scale.ordinal()
+					.rangeRoundBands([-30,width+10],.30);
+			
+			var color=d3.scale.linear()
+	    		    .domain([0,1,2,3,4,5,6,7])
+	            	.range(["#cc0000","#ff1a8c","#ff6600","#e6b800","#b8b894","#0000ff","#00b300","#ffffff"]);
+
+			//Declare the axis x,y
+			var Xaxis=d3.svg.axis()
+						.orient("bottom")
+						.tickValues(dataset)
+						.scale(x);
+
+			var Yaxis= d3.svg.axis()
+					 .orient("left")
+					 .scale(y);
+			
+
+			var dataIntermediate = S_headers.map(function(c){
+				return data.map(function(d){
+					return {x: d.Character_Name, y:+d[c]};
+				});
+			});	
+
+			var dataStackLayout=d3.layout.stack()(dataIntermediate);
+
+			x.domain(dataStackLayout[0].map(function(d){
+				return d.x;
+			}));
+
+			y.domain([0,d3.max(dataStackLayout[dataStackLayout.length - 1], function (d) { return d.y0+d.y;})]).nice();
+
+			var layer =canvas.selectAll(".stack")
+							.data(dataStackLayout)
+							.enter()
+								.append("g")
+								.attr("class","stack")
+								.style("fill",function(d,i){
+									return color(i);
+								})
+
+			layer.selectAll("rect")
+					.data(function(d){
+						return d;
+					})
+					.enter().append("rect")
+					.attr("x",function(d){
+						return x(d.x);
+					})
+					.attr("y",function(d){
+						return y(d.y+d.y0);
+					})
+					.attr("height",function(d){
+						return y(d.y0)-y(d.y+d.y0);
+					})
+					.attr("width",x.rangeBand());
+
+			$('svg rect').tipsy({ 
+        			gravity: 'w', 
+        			html: true, 
+        			title: function() {
+          			var d = this.__data__;
+          			return "Character:" + d.x + ", Screen Time: " + d.y; 
+        		}});
+
+			var legendSP = canvas.selectAll(".legend")
+        				.data(S_headers.slice().reverse())
+            			.enter().append("g")
+            			.attr("class", "legendSP")
+            			.attr("transform", function(d, i) { return "translate(-20," + i * 20 + ")"; });
+       
+       		 legendSP.append("circle")
+           		 .attr("cx", width - 10)
+            		.attr("r", 7)
+            	//	.attr("height", 15)
+            		.style("fill", color1);
+    
+      		  legendSP.append("text")
+            	  		.attr("x", width-22)
+              			.attr("y", 2)
+              			.style("text-anchor", "end")
+              			.text(function(d) { return d;});
+
+			canvas.append("g")
+				  .attr("class", "y axis")
+				  .call(Yaxis)
+				  .append("text")
+				  .attr("text-anchor","end")
+				  .attr("font-family","times new roman")
+			  	  .attr("y",6)
+			  	  .attr("dx","-.9em")
+				  .attr("dy",".95em")
+				  .attr("font-size","13px")
+				  .attr("transform","rotate(-90)")
+				  .text("Total Screen Time (min)");
+			canvas.append("g")
+				  .attr("class","x axis")
+				  .attr("transform","translate(0,"+ height + ")")
+				  .call(Xaxis)
+				  .selectAll("text")
+				  	.style("text-anchor","end")
+				  	.attr("dx","-.8em")
+				  	.attr("dy",".15em")
+				  	.attr("font-family","times new roman")
+				  	.attr("font-size","11px")
+				  	.attr("transform", function(d){ return "rotate(-70)"});
+		})	
+
+
+			}
+
+			//Method that  shows the total screen time per house
+			function DrawHouseTotal(){
+				//Clean the canvas from all existing elements
+				canvas.selectAll("*").remove();
+				dataset=[];
+
+				//Make the button element visible
+				document.getElementById("btn").style.visibility="hidden";
+				document.getElementById("SeasonText").textContent="ALL SEASONS";
+				document.getElementById("SeasonText").style.color="#000000";
+	
+				
+				//Fill array dataset with the names of the houses 
+				d3.csv("datasets/ScreenTimePerHouse.csv", function(csv){
+				csv.map(function(d){
+					dataset.push(d.house);
+				})});
+
+			d3.csv("datasets/ScreenTimePerHouse.csv", function (data){
+			//Declare scale for attributes
+	    	var y=d3.scale.linear()
+				.range([height, 0]);
+			
+			var x=d3.scale.ordinal()
+					.rangeRoundBands([0,width],.25);
+			
+			var color=d3.scale.linear()
+	    		    .domain([0,1,2,3,4,5,6,7])
+	            	.range(["#cc0000","#ff1a8c","#ff6600","#e6b800","#b8b894","#0000ff","#00b300","#ffffff"]);
+
+			//Declare the axis x,y
+			var Xaxis=d3.svg.axis()
+						.orient("bottom")
+						.tickValues(dataset)
+						.scale(x);
+
+			var Yaxis= d3.svg.axis()
+					 .orient("left")
+					 .scale(y);
+			
+			var dataIntermediate = S_headers.map(function(c){
+				return data.map(function(d){
+					return {x: d.house, y:+d[c]};
+				});
+			});	
+
+			var dataStackLayout=d3.layout.stack()(dataIntermediate);
+
+			x.domain(dataStackLayout[0].map(function(d){
+				return d.x;
+			}));
+
+			y.domain([0,d3.max(dataStackLayout[dataStackLayout.length - 1], function (d) { return d.y0+d.y;})]).nice();
+
+			var layer =canvas.selectAll(".stack")
+							.data(dataStackLayout)
+							.enter()
+								.append("g")
+								.attr("class","stack")
+								.style("fill",function(d,i){
+									return color(i);
+								})
+
+			layer.selectAll("rect")
+					.data(function(d){
+						return d;
+					})
+					.enter().append("rect")
+					.attr("x",function(d){
+						return x(d.x);
+					})
+					.attr("y",function(d){
+						return y(d.y+d.y0);
+					})
+					.attr("height",function(d){
+						return y(d.y0)-y(d.y+d.y0);
+					})
+					.attr("width",x.rangeBand());
+
+			$('svg rect').tipsy({ 
+        			gravity: 'w', 
+        			html: true, 
+        			title: function() {
+          			var d = this.__data__;
+          			return "House Name:" + d.x + ", Screen Time: " + d.y; 
+        		}});
+
+			var legendSP = canvas.selectAll(".legend")
+        				.data(S_headers.slice().reverse())
+            			.enter().append("g")
+            			.attr("class", "legendSP")
+            			.attr("transform", function(d, i) { return "translate(-20," + i * 20 + ")"; });
+       
+       		 legendSP.append("circle")
+           		 .attr("cx", width-42)
+            		.attr("r", 7)
+            		.style("fill", color1);
+    
+      		  legendSP.append("text")
+            	  		.attr("x", width-50)
+              			.attr("y", 2)
+              			.style("text-anchor", "end")
+              			.text(function(d) { return d;});
+
+			canvas.append("g")
+				  .attr("class", "y axis")
+				  .call(Yaxis)
+				  .append("text")
+				  	  	  .attr("text-anchor","end")
+				  	      .attr("font-family","times new roman")
+			  	  	      .attr("y",6)
+			  	  	      .attr("dx","-.9em")
+				  	      .attr("dy",".95em")
+  	      				  .attr("font-size","13px")
+				  	      .attr("transform","rotate(-90)")
+				  	      .text("Total Screen Time (min)");
+			canvas.append("g")
+				  .attr("class","x axis")
+				  .attr("transform","translate(0,"+ height + ")")
+				  .call(Xaxis)
+				  .selectAll("text")
+				  	.style("text-anchor","end")
+				  	.attr("dx","-.8em")
+				  	.attr("dy",".15em")
+				  	.attr("font-family","times new roman")
+				  	.attr("font-size","11px")
+				  	.attr("transform", function(d){ return "rotate(-70)"});
+		})
+				
+		}
+
+
+			//Method that shows the screen time for each house per season 
+			function DrawHousePerSeason(){
+				//Clean the canvas of the existing elements and the array of the existing data
+				canvas.selectAll("*").remove();
+				dataset=[];
+				NumSeason=1;
+
+				//Make button element visible
+				document.getElementById("btn").style.visibility="visible";
+				document.getElementById("SeasonText").textContent="SEASON 1";
+				document.getElementById("SeasonText").style.color=color(1).toString();
+
+				//Put data in the dataset
+				d3.csv("datasets/ScreenTimePerHouse.csv", function(csv){
+					csv.map(function(d){
+					dataset.push(d.house);
+					objects.push(d);
+
+					})
+				});
+
+				y=d3.scale.linear()
+					.domain([0,305])
+					.range([height, 0]);
+
+				//Implementation of drawing
+				d3.csv("datasets/ScreenTimePerHouse.csv", function (data){
+					x=d3.scale.ordinal()
+							  .domain(dataset)
+							  .rangePoints([2,width]);
+					//Declare the axis x,y
+					Xaxis=d3.svg.axis()
+							.orient("bottom")
+							.tickValues(dataset)
+							.scale(x);
+
+					Yaxis= d3.svg.axis()
+					 		.orient("left")
+					 		.scale(y);
+										 	
+
+					canvas.selectAll("rect")
+				  			.data(data)
+				  			.enter()
+				  			.append("rect")
+				  			.attr("x", function(d){ return x(d.house);})
+				  			.attr("y",function(d){ return y(d.season1)})
+				  			.attr("width",7)
+				  			.attr("height", function(d){return height-y(d.season1);})
+				  			.attr("fill",function(d){return HouseColors(d.house);})
+				  			.on("click",function(){
+				  				var d=this.__data__;
+				  				var name=d.house;
+				  				getSpecificHouse(name);
+				  	});	 
+
+				$('svg rect').tipsy({ 
+        			gravity: 'w', 
+        			html: true, 
+        			title: function() {
+          			var d = this.__data__;
+          			var rad =this.height.animVal.value;
+          			var aktina=(305-y.invert(rad)).toFixed(2);
+          			console.log(d,aktina);
+          			return "House Name:" + d.house + ", Screen Time: " + aktina + ", Motto: " + d.motto; 
+        		}});
+						 
+					canvas.append("g")
+				  		  .attr("class", "y axis")
+				  		  .call(Yaxis)
+				  		  .append("text")
+				  		  .attr("text-anchor","end")
+				  		  .attr("font-family","times new roman")
+			  	  		  .attr("y",6)
+				  		  .attr("dy",".95em")
+   	      				  .attr("font-size","13px")
+				  		  .attr("transform","rotate(-90)")
+				  		  .text("Screen Time (min)");
+					canvas.append("g")
+				  		  .attr("class","x axis")
+				  		  .attr("transform","translate(0,"+ height + ")")
+				  		  .call(Xaxis)
+				  		  .selectAll("text")
+				  		  .style("text-anchor","end")
+				  		  .attr("dx","-.8em")
+				  		  .attr("dy",".15em")
+				  		  .attr("font-family","times new roman")
+				  		  .attr("font-size","11px")
+				  		  .attr("transform", function(d){ return "rotate(-70)"});
+					
+					//Adding legend to see how colors match
+					var legendSP = canvas.selectAll(".legend")
+        				.data(headers.slice().reverse())
+            			.enter().append("g")
+            			.attr("class", "legendSP")
+            			.attr("transform", function(d, i) { return "translate(-2," + i * 20 + ")"; });
+       
+       				legendSP.append("circle")
+           		 		.attr("cx", width-7 )
+            			.attr("r", 5)
+            			.style("fill", HouseColors);
+    
+   		   	 		legendSP.append("text")
+            	  		.attr("x", width-22)
+              			.attr("y", 2)
+              			.style("text-anchor", "end")
+              			.text(function(d) { return d;});
+		})}
+
+
+			function resize() {
+  				//This function is called if the window is resized
+  				viewWidth = window.innerWidth;
+  				viewHeight = window.innerHeight;
+			}
+
+			function moveRectangles(){
+				var txtId=document.getElementById("SeasonText");
+			
+			switch(NumSeason){
+				case 1:
+					txtId.textContent="SEASON 2";
+					txtId.style.color=color(NumSeason+1).toString();
+					NumSeason=2;
+					rects=canvas.selectAll("rect");
+					rects.transition() 
+					   .duration(1500)
+					   .attr("height", function(d){return height-y(d.season2)})
+					   .attr("y",function(d){ return y(d.season2)});
+				break;
+				case 2:
+					txtId.textContent="SEASON 3";
+					txtId.style.color=color(NumSeason+1).toString();
+					NumSeason=3;
+					rects=canvas.selectAll("rect");
+					rects.transition() 
+					   .duration(1500)
+					   .attr("height", function(d){return height-y(d.season3)})
+					   .attr("y",function(d){ return y(d.season3)});
+				break;
+				case 3:
+					txtId.textContent="SEASON 4";
+					txtId.style.color=color(NumSeason+1).toString();
+					NumSeason=4;
+					rects=canvas.selectAll("rect");
+					rects.transition() 
+				   .duration(1500)
+				   .attr("height", function(d){return height-y(d.season4)})
+				   .attr("y",function(d){ return y(d.season4)});
+				break;
+				case 4:
+					txtId.textContent="SEASON 5";
+					txtId.style.color=color(NumSeason+1).toString();
+					NumSeason=5;
+					rects=canvas.selectAll("rect");
+					rects.transition() 
+				   .duration(1500)
+				   .attr("height", function(d){return height-y(d.season5)})
+				   .attr("y",function(d){ return y(d.season5)});
+				break;
+				case 5:
+					txtId.textContent="SEASON 6";
+					txtId.style.color=color(NumSeason+1).toString();
+					NumSeason=6;
+					rects=canvas.selectAll("rect");
+					rects.transition() 
+				   .duration(1500)
+				   .attr("height", function(d){return height-y(d.season6)})
+				   .attr("y",function(d){ return y(d.season6)});
+				break;
+				case 6:
+					txtId.textContent="SEASON 7";
+					txtId.style.color=color(NumSeason+1).toString();
+					NumSeason=7;
+					rects=canvas.selectAll("rect");
+					rects.transition() 
+				   .duration(1500)
+				   .attr("height", function(d){return height-y(d.season7)})
+				   .attr("y",function(d){ return y(d.season7)});
+				break;
+				case 7:
+					txtId.textContent="SEASON 1";
+					txtId.style.color=color(1).toString();
+					NumSeason=1;
+					rects=canvas.selectAll("rect");
+					rects.transition() 
+				   .duration(1500)
+				   .attr("height", function(d){return height-y(d.season1)})
+				   .attr("y",function(d){ return y(d.season1)});
+				}
+			}
+
+			//Method that finds the representation wanted by the user 
+			function selectRepresentation(){
+				var e = document.getElementById("Represent");
+				console.log(e);
+				var optionG= e.options[e.selectedIndex].value;
+				if(optionG==="Characters Total Screen Time") representation=1;
+				if(optionG==="Characters Screen Time Per Season") representation=2;
+				if(optionG==="Houses Total Screen Time") representation=3;
+				if(optionG==="Houses Screen Time Per Season") representation=4;
+				console.log(representation);
+				ChangeView(representation);
+			}
+
+			//Method that changes the representation in the container svg
+			function ChangeView (i){
+				switch(i){
+					case 1:
+						DrawCharTotal();
+						break;
+					case 2:
+						DrawCharPerSeason();
+						break;
+					case 3:
+						DrawHouseTotal();
+						break;
+					case 4:
+						DrawHousePerSeason();
+						
+						break;
+				}}
+
+		function getSpecificCharacter(string){
+			canvas.selectAll("*").remove();
+			dataset=[];
+			objects=[];
+			document.getElementById("btn").style.visibility="hidden";
+			document.getElementById("SeasonText").textContent=string;
+			document.getElementById("SeasonText").style.color="#000000";
+
+			d3.csv("datasets/ScreenTimePerSeason.csv", function(csv){
+						csv.map(function(d){ 
+						dataset.push(d.house);
+						objects.push(d);
+					}) });
+
+
+			d3.csv("datasets/ScreenTimePerSeason.csv", function (data){
+			 var object=objects.find(x => x.Character_Name===string);
+			 var myChar=[parseFloat(object.season1),parseFloat(object.season2),parseFloat(object.season3),parseFloat(object.season4),parseFloat(object.season5),parseFloat(object.season6),parseFloat(object.season7)];
+			 //Create array for transition
+			 var y0=[];
+			 var  i;
+			 for (i=0;i<7;i++){
+			 	if(i==0) {
+			 		y0[i]=0;
+			 	}
+			 	else if(i==1) {
+			 		y0[i]=myChar[0];
+			 	}
+			 	else{
+			 		y0[i]=y0[i-1]+myChar[i-1];
+			 	}
+			}
+
+			var y1=d3.scale.linear()
+						.domain([0,object.total])
+						.range([height, 0]);
+			var x1=d3.scale.ordinal()
+					.domain(S_headers)
+					.rangePoints([0,width-20]);
+			//Declare the axis x,y
+			var Xaxis=d3.svg.axis()
+						.orient("bottom")
+						.tickValues(S_headers)
+						.scale(x1);
+
+			var Yaxis= d3.svg.axis()
+					 .orient("left")
+					 .scale(y1);
+			
+			canvas.selectAll("rect")
+				  .data(myChar)
+				  .enter()
+				  	.append("rect")
+				  	.attr("x",function(d,i){ return x1(S_headers[i]);})
+		  	        .attr("y",function(d,i){return y1(myChar[i]);})
+				  	.attr("width",25)
+				  	.attr("height",function(d,i){return height-y1(myChar[i]);})
+				 	.attr("fill",function(d,i){return color(i+1);});
+
+				  	$('svg rect').tipsy({ 
+        			gravity: 'w', 
+        			html: true, 
+        			title: function() {
+          			var d = this.__data__;
+          			return "Character:" + object.Character_Name + ", Screen Time: " + d; 
+        		}});
+				  	
+		 
+				  //Transition after delay
+				  setTimeout(function(){
+				  	var rects=canvas.selectAll("rect");
+				  	document.getElementById("HidePlease0").style.visibility="hidden";
+				  	document.getElementById("HidePlease1").style.visibility="hidden";
+				  	document.getElementById("HidePlease2").style.visibility="hidden";
+				  	document.getElementById("HidePlease3").style.visibility="hidden";
+				  	document.getElementById("HidePlease4").style.visibility="hidden";
+				  	document.getElementById("HidePlease5").style.visibility="hidden";
+				  	document.getElementById("HidePlease6").style.visibility="hidden";
+					rects.transition()
+						 .duration(2000)
+						 .attr("x",x1(S_headers[2]))
+						 .attr("y",function(d,i){return y1(y0[i]+myChar[i]);})
+						 .attr("height",function(d,i){return y1(y0[i])-y1(myChar[i]+y0[i]);})
+						 .attr("width",150);	
+				  }, 3000);
+
+			canvas.append("g")
+				  .attr("class", "y axis")
+				  .call(Yaxis).append("text")
+				  .attr("text-anchor","end")
+				  .attr("font-family","times new roman")
+			  	  .attr("y",6)
+				  .attr("dy",".95em")
+   	      		  .attr("font-size","13px")
+				  .attr("transform","rotate(-90)")
+		  		  .text("Screen Time of : "+ object.Character_Name +" (min)");
+			canvas.append("g")
+				  .attr("class","x axis")
+				  .attr("transform","translate(0,"+ height + ")")
+				  .call(Xaxis)
+				  .selectAll("text")
+				  	.style("text-anchor","end")
+				  	.attr("dx","-.8em")
+				  	.attr("id",function(d,i){ return "HidePlease"+ i.toString()})
+				  	.attr("dy",".15em")
+				  	.attr("font-family","times new roman")
+				  	.attr("font-size","11px")
+				  	.attr("transform", function(d){ return "rotate(-70)"});
+
+			var legendSP = canvas.selectAll(".legend")
+        				.data(S_headers.slice().reverse())
+            			.enter().append("g")
+            			.attr("class", "legendSP")
+            			.attr("transform", function(d, i) { return "translate(-20," + i * 20 + ")"; });
+       
+       		 legendSP.append("circle")
+           		 .attr("cx", width - 10)
+            		.attr("r", 7)
+            		.style("fill", color1);
+    
+      		  legendSP.append("text")
+            	  		.attr("x", width-22)
+              			.attr("y", 2)
+              			.style("text-anchor", "end")
+              			.text(function(d) { return d;});	  	
+		})
+}
+
+
+		function getSpecificHouse(string){
+			canvas.selectAll("*").remove();
+			dataset=[];
+			objects=[];
+
+			document.getElementById("btn").style.visibility="hidden";
+			document.getElementById("SeasonText").textContent="House: " + string;
+			document.getElementById("SeasonText").style.color="#000000";
+			d3.csv("datasets/ScreenTimePerHouse.csv", function(csv){
+						csv.map(function(d){ 
+						dataset.push(d.house);
+						objects.push(d);
+					}) });
+			d3.csv("datasets/ScreenTimePerHouse.csv", function (data){
+			 var object=objects.find(x => x.house==string);
+			 console.log(string,object);
+			 var myChar=[parseFloat(object.season1),parseFloat(object.season2),parseFloat(object.season3),parseFloat(object.season4),parseFloat(object.season5),parseFloat(object.season6),parseFloat(object.season7)];
+
+			 var y0=[];
+			 var  i;
+			 for (i=0;i<7;i++){
+			 	if(i==0) {
+			 		y0[i]=0;
+			 	}
+			 	else if(i==1) {
+			 		y0[i]=myChar[0];
+			 	}
+			 	else{
+			 		y0[i]=y0[i-1]+myChar[i-1];
+			 	}
+			}
+
+			var y1=d3.scale.linear()
+						.domain([0,object.total])
+						.range([height, 0]);
+			var x1=d3.scale.ordinal()
+					.domain(S_headers)
+					.rangePoints([0,width-20]);
+			//Declare the axis x,y
+			var Xaxis=d3.svg.axis()
+						.orient("bottom")
+						.tickValues(S_headers)
+						.scale(x1);
+
+			var Yaxis= d3.svg.axis()
+					 .orient("left")
+					 .scale(y1);
+			
+			canvas.selectAll("rect")
+				  .data(myChar)
+				  .enter()
+				  	.append("rect")
+				  	.attr("x",function(d,i){ return x1(S_headers[i]);})
+		  	        .attr("y",function(d,i){return y1(myChar[i]);})
+				  	.attr("width",25)
+				  	.attr("height",function(d,i){return height-y1(myChar[i]);})
+				  	.attr("fill",function(d,i){return color(i+1);});
+
+				  	$('svg rect').tipsy({ 
+        			gravity: 'w', 
+        			html: true, 
+        			title: function() {
+          			var d = this.__data__;
+          			return "House Name:" + object.house + ", Screen Time: " + d; 
+        		}});
+
+
+			//Transition after delay
+				  setTimeout(function(){
+				  	var rects=canvas.selectAll("rect");
+				  	document.getElementById("HidePlease0").style.visibility="hidden";
+				  	document.getElementById("HidePlease1").style.visibility="hidden";
+				  	document.getElementById("HidePlease2").style.visibility="hidden";
+				  	document.getElementById("HidePlease3").style.visibility="hidden";
+				  	document.getElementById("HidePlease4").style.visibility="hidden";
+				  	document.getElementById("HidePlease5").style.visibility="hidden";
+				  	document.getElementById("HidePlease6").style.visibility="hidden";
+					rects.transition()
+						 .duration(2000)
+						 .attr("x",x1(S_headers[2]))
+						 .attr("y",function(d,i){return y1(y0[i]+myChar[i]);})
+						 .attr("height",function(d,i){return y1(y0[i])-y1(myChar[i]+y0[i]);})
+						 .attr("width",150);	
+				  }, 3000);	  	
+				  	
+		 
+			canvas.append("g")
+				  .attr("class", "y axis")
+				  .call(Yaxis)
+				  .append("text")
+				  		  .attr("text-anchor","end")
+				  		  .attr("font-family","times new roman")
+			  	  		  .attr("y",6)
+				  		  .attr("dy",".95em")
+   	      				  .attr("font-size","13px")
+				  		  .attr("transform","rotate(-90)")
+				  		  .text("Screen Time of house: "+ object.house+" (min)");
+			canvas.append("g")
+				  .attr("class","x axis")
+				  .attr("transform","translate(0,"+ height + ")")
+				  .call(Xaxis)
+				  .selectAll("text")
+				  	.style("text-anchor","end")
+				  	.attr("dx","-.8em")
+				  	.attr("dy",".15em")
+				  	.attr("id",function(d,i){ return "HidePlease"+ i.toString()})
+				  	.attr("font-family","times new roman")
+				  	.attr("font-size","11px")
+				  	.attr("transform", function(d){ return "rotate(-70)"});
+
+			var legendSP = canvas.selectAll(".legend")
+        				.data(S_headers.slice().reverse())
+            			.enter().append("g")
+            			.attr("class", "legendSP")
+            			.attr("transform", function(d, i) { return "translate(-20," + i * 20 + ")"; });
+       
+       		 legendSP.append("circle")
+           		 .attr("cx", width - 10)
+            		.attr("r", 7)
+            		.style("fill", color1);
+    
+      		  legendSP.append("text")
+            	  		.attr("x", width-22)
+              			.attr("y", 2)
+              			.style("text-anchor", "end")
+              			.text(function(d) { return d;});	  	
+		})}
+		// --------------------------------------------------- end of code for Scatter Plot -----------------------------------------
+
+	</script>
+
+</body>
+</html>

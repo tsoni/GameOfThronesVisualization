@@ -1,0 +1,110 @@
+Character_Name,season1,season2,season3,season4,season5,season6,season7,total,house
+Lysa Arryn,6,0,0,10.5,0,0,0,16.5,Arryn
+Robin Arryn,3.75,0,0,4.75,0.5,2.25,0,11.25,Arryn
+Gendry,2.75,9,17,0,0,0,10.5,39.25,Baratheon
+Joffrey Baratheon,17.75,17.5,20.25,14.75,0,0,0,70.25,Baratheon
+Myrcella Baratheon,0.75,1.5,0,0,8,1.5,0,11.75,Baratheon
+Renly Baratheon,9.5,14.5,0,0,0,0,0,24,Baratheon
+Robert Baratheon,30.5,0,0,0,0,0,0,30.5,Baratheon
+Selyse Baratheon,0,0.25,2,5.25,3.75,0,0,11.25,Baratheon
+Shireen Baratheon,0,0,4,2.75,11.5,0,0,18.25,Baratheon
+Stannis Baratheon,0,19.75,14.25,10,29.25,0,0,73.25,Baratheon
+Tommen Baratheon,0.75,4.25,0,9.75,11.5,17,0,43.25,Baratheon
+Ramsay Bolton,0,0,12.75,13.5,18.5,21.25,0,66,Bolton
+Roose Bolton,0,3.5,8.75,5.75,9,3.25,0,30.25,Bolton
+Walda Bolton,0,0,0,0.3,4.4,1.1,0,5.8,Bolton
+Khal Drogo,22.75,2.25,0,0,0,0,0,25,Dothraki
+Rakharo,23.2,3.78,0,0,0,0,0,26.98,Dothraki
+Walder Frey,3,0,7,0,0,5.75,0,15.75,Frey
+Lothar Frey,0,0,7.2,0,0,3.3,0,10.5,Frey
+Black Walder Rivers,0,0,4.42,0,0,2.53,0,6.95,Frey
+Balon Greyjoy,0,6.5,2.5,0,0,3.25,0,12.25,Greyjoy
+Euron Greyjoy,0,0,0,0,0,6.5,10.5,17,Greyjoy
+Theon Greyjoy,16.75,40.25,22.5,12.25,15.5,16.5,12.5,136.25,Greyjoy
+Yara Greyjoy,0,10,2.75,2.25,0,12,5.25,32.25,Greyjoy
+Cersei Lannister,28,36.25,22,37.25,49.75,28.5,34.25,236,Lannister
+Jaime Lannister,21,18.25,34.75,36,21.75,30.75,36.5,199,Lannister
+Lancel Lannister,3.25,6.5,0,0,4,5.25,0,19,Lannister
+Tyrion Lannister,52.75,65,50,47.75,44,34,43.5,337,Lannister
+Tywin Lannister,10.25,17.25,21.25,28.5,1,0,0,78.25,Lannister
+Kevan Lannister,3.8,1.65,0,0,3.2,10.2,0,18.85,Lannister
+Ellaria Sand,0,0,0,6.75,8.75,3,5.75,24.25,Martell
+Oberyn Martell,0,0,0,28.5,0,0,0,28.5,Martell
+Tyene Sand,0,0,0,0,7.25,1.25,3,11.5,Martell
+Nymeria Sand,0,0,0,0,8.3,0.9,1.78,10.98,Martell
+Doran Martell,0,0,0,0,4.8,1.9,0,6.7,Martell
+Trystane Martell,0,0,0,0,6.19,0.78,0,6.97,Martell
+Obara Sand,0,0,0,0,7.76,0.73,1.5,9.99,Martell
+Jeor Mormont,10,7,4,0,0,0,0,21,Mormont
+Jorah Mormont,27.5,17.5,18.75,13.5,29.75,10.5,25,142.5,Mormont
+Lyanna Mormont,0,0,0,0,0,5.1,19.3,24.4,Mormont
+Alliser Thorne,6.75,0,0,9.25,5.75,4.25,0,26,Night Watch
+Eddison Tollett,0,5,3.75,5.75,4.25,9.5,1,29.25,Night Watch
+Grenn,6.25,5,3,7,0,0,0,21.25,Night Watch
+Olly,0,0,0,3.25,7.25,2,0,12.5,Night Watch
+Samwell Tarly,21.25,11.25,24,26,23.5,16,21.75,143.75,Night Watch
+Pypar,7,0,0.75,4.25,0,0,0,12,Night Watch
+Yoren,6,6,0,0,0,0,0,12,Night Watch
+Othell Yarwyck,4.9,0,0,4.5,7.2,6.5,0,23.1,Night Watch
+Qhorin Halfhand,0,8.7,0,0,0,0,0,8.7,Night Watch
+Barristan Selmy,8.75,0,13.5,7.75,7.25,0,0,37.25,Others
+Beric Dondarrion,0.5,0,8.25,0,0,2.5,13.75,25,Others
+Brienne of Tarth,0,18,21.25,20,14.75,15.5,8,97.5,Others
+Bronn,15,14.5,6.75,8.75,13.5,5.5,10.75,74.75,Others
+Daario Naharis,0,0,6.5,7.5,19.25,12.75,0,46,Others
+Davos Seaworth,0,19.25,19,11.5,12.5,27.25,20.5,110,Others
+Grand Maester Pycelle,13.75,6.25,2.75,5.25,2.5,4.75,0,35.25,Others
+Gregor Clegane,2.5,1.75,0,4.75,0.5,9.25,5.5,24.25,Others
+Grey Worm,0,0,5.5,6.5,10.25,10,10.5,42.75,Others
+High Sparrow,0,0,0,0,17,20.5,0,37.5,Others
+Hodor,3,6,7,7,0,6.5,0,29.5,Others
+Hot Pie,0.75,5.5,4.5,2,0,0,2,14.75,Others
+Jaqen Hghar,0,8,0,0,11.25,7.25,0,26.5,Others
+Jojen Reed,0,0,9.75,9.25,0,0,0,19,Others
+Lady Crane,0,0,0,0,0,10,0,10,Others
+Lord Varys,19,14,15.75,6.5,10.5,16,12.5,94.25,Others
+Maester Luwin,6.75,16.75,0,0,0,0,0,23.5,Others
+Meera Reed,0,0,8.25,9.25,0,9.5,2.25,29.25,Others
+Melisandre,0,12.75,18,5.25,11.75,18,3,68.75,Others
+Meryn Trant,3,2.75,1.25,1.75,7.25,0,0,16,Others
+Missandei,0,0,11.5,9.5,13.25,11.5,16.5,62.25,Others
+Myranda,0,0,3.5,1.5,7.25,0.75,0,13,Others
+Petyr Baelish,25.75,21.25,8.75,19,18.5,9,16.75,119,Others
+Podrick Payne,0,3.75,5.5,16,9,7,3.25,44.5,Others
+Qyburn,0,0,5.75,2.25,4.25,7,5.5,24.75,Others
+Sandor Clegane,6.75,11.75,16,28.5,0,9.75,22.5,95.25,Others
+Shae,8,16,14.5,8.75,0,0,0,47.25,Others
+Talisa Maegyr,0,14.75,16,0,0,0,0,30.75,Others
+The Waif,0,0,0,0,4.5,8.25,0,12.75,Others
+Doreah,9.5,3,0,0,0,0,0,12.5,Others
+The Night King,0,0,0,1,4.3,4,6,15.3,Others
+Three-Eyed Raven,0.7,0,1.2,1.4,0,12.3,0,15.6,Others
+Arya Stark,33.5,38.75,26.5,25.75,34.75,30,35,224.25,Stark
+Benjen Stark,6.25,0,0,0,0,5.75,0.75,12.75,Stark
+Bran Stark,25.75,13.25,16.75,12,0,18.25,13.25,99.25,Stark
+Catelyn Stark,42.25,24,16.5,0,0,0,0,82.75,Stark
+Eddard Stark,92.5,0,0,0,0,7.25,0.25,100,Stark
+Jon Snow,54.75,33.75,36,42.5,49.25,52,70,338.25,Stark
+Rickon Stark,1.25,4.25,3.75,0,0,3.25,0,12.5,Stark
+Robb Stark,24.75,27.5,25.5,0,0,0,0,77.75,Stark
+Sansa Stark,24,34,33.5,32.75,34.75,40.5,39,238.5,Stark
+Lyanna Stark,0,0,0,0,0,1.4,0.4,1.8,Stark
+Daenerys Targaryen,54,38.75,30.75,27.5,41.75,28.75,54.5,276,Targaryen
+Maester Aemon,5.5,0,1.25,6,6.25,0,0,19,Targaryen
+Viserys Targaryen,20.5,0,0,0,0,0,0,20.5,Targaryen
+Rhaegar Targaryen,0,0,0,0,0,0,0.4,0.4,Targaryen
+Brynden Tully,0,0,9.5,0,0,6.5,0,16,Tully
+Edmure Tully,0,0,10.5,0,0,7.25,0,17.75,Tully
+Loras Tyrell,5.75,8,6.25,1.75,4.5,5.75,0,32,Tyrell
+Mace Tyrell,0,0,0,3.75,3.5,4.25,0,11.5,Tyrell
+Margaery Tyrell,0,9.5,21.25,17.75,11.25,18.25,0,78,Tyrell
+Olenna Tyrell,0,0,13.75,8,8,8.5,5.75,44,Tyrell
+Gilly,0,3.25,13.5,9.25,11.75,15.25,2.5,55.5,Wildling
+Mance Rayder,0,0,6.75,7,7.25,0,0,21,Wildling
+Osha,8,9.5,8.75,0,0,3.5,0,29.75,Wildling
+Tormund Giantsbane,0,0,8.75,7.25,12.25,13.5,13.75,55.5,Wildling
+Ygritte,0,17.75,25,8.25,0,0,0,51,Wildling
+Wun Wun,0,0,0,0,10.26,9.4,0,19.66,Wildling
+Rattleshirt,0,4.7,0,0,0.8,0,0,5.5,Wildling
+Mag the Mighty,0,0,0,2.8,0,0,0,2.8,Wildling
+Craster,0,3.48,3.6,0,0,0,0,7.08,Wildling

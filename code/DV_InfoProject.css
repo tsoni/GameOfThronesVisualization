@@ -1,0 +1,205 @@
+body{
+	background:#e6e6e6
+}
+
+.axis path, .axis line {
+  fill: none;
+  stroke: #000;
+  shape-rendering: crispEdges;
+}
+
+.Got_img{
+	background-image: url('IntroPic.jpg');
+	background-color: #ffffff;
+	height:150px;
+}
+
+.arxi h1{
+	font-family: "Times New Roman",fantasy;
+	text-align: center;
+}
+
+.arxi p{
+	font-family: "Times New Roman",fantasy;
+	font-size: 20px;
+	text-align: left;
+	width:85%	
+}
+
+.svg {
+	text-align: center;
+}
+
+.Char_Container{
+	max-width: 600px;
+	max-height:600px;
+	background-color: #ffffff;
+}
+
+#SelectionPlot{
+  position: relative;
+  font-size: 15px;
+}
+
+#SeasonText{
+position:absolute;
+bottom:8px;
+font-size: 20px;
+text-align: middle;
+}
+
+#SelectForChar {
+	text-align: left;
+}
+
+#SelectForChar p{
+	text-align: center;
+	color: #cc0000;
+	width: 55%;
+}
+
+/*-------------------------------------css for tree----------------------------------------------*/
+div.tooltip {   
+  position: absolute;                      
+  width: 250px;              
+  height: 350px;                 
+  padding: 2px;             
+  font: 12px sans-serif;           
+  border: 2px solid black;      
+  border-radius: 2px;           
+  pointer-events: none; 
+  background-color: white;        
+}
+div a{
+      background-color: green;
+
+}
+
+div img {
+			display: block;
+			margin-left : 58px;
+			margin-top: -5px;
+			width: 80px;
+			height: 80px;
+}
+
+
+div hr{
+  padding: 0px;
+  margin-top:2px;
+
+}
+div h3{
+  text-align: center;
+  margin-top: 0px;
+}
+
+div h5{
+  margin-top: 0px;
+}
+.node {
+  cursor: pointer;
+}
+
+.node circle {
+  fill: #fff;
+
+  stroke: steelblue;
+  stroke-width: 1.5px;
+}
+
+.link {
+  fill: none;
+  stroke: #ccc;
+  stroke-width: 1.5px;
+}
+/*------------------------------------end of css for tree------------------------------------*/
+/*------------------------------------css for relationships graph------------------------------------*/
+.nodeRG {
+  font: 300 9px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  fill: #bbb;
+}
+
+.nodeRG:hover {
+  fill: #000;
+}
+
+.linkRG {
+  stroke: steelblue;
+  stroke-opacity: 0.4;
+  fill: none;
+  pointer-events: none;
+}
+
+.betrayLink {
+  stroke: red;
+  stroke-opacity: 0.4;
+  fill: none;
+  pointer-events: none;
+}
+
+.aliasLink {
+  stroke: green;
+  stroke-opacity: 0.4;
+  fill: none;
+  pointer-events: none;
+}
+
+.nodeRG:hover,
+.nodeRG--source,
+.nodeRG--target {
+  font-weight: 700;
+  font-size: 13px;
+}
+
+.nodeRG--source {
+  fill: black /*green*/
+}
+
+.nodeRG--target {
+  fill: black; /*red*/
+}
+
+.linkRG--source,
+.linkRG--target {
+  stroke-opacity: 1;
+  stroke-width: 2px;
+}
+
+.linkRG--source {
+  stroke: #dbd64e; /*yellow*/
+}
+
+.linkRG--target {
+  stroke: #54f9f4; /*light blue*/
+}
+
+.legentText {
+	font: 300 11px "Helvetica Neue", Helvetica, Arial, sans-serif;
+  	fill: black;
+}
+/*----------------------------------end of css for Relationship Graph----------------------------------*/
+/*----------------------------------css for StreamGraph----------------------------------*/
+body {
+    font: 10px sans-serif;
+}
+/*		svg {
+	margin:30px;
+}*/
+.axis path, .axis line {
+    fill: none;
+    stroke: #000;
+    shape-rendering: crispEdges;
+}
+
+.layer {
+    stroke:none;
+}
+
+ .legend {
+    padding: 5px;
+    font: 10px sans-serif;
+    background: yellow;
+    box-shadow: 2px 2px 1px #888;
+  }
+/*----------------------------------end of css for StreamGraph----------------------------------*/
